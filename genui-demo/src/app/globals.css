@@ -1,0 +1,13 @@
+@import "@openuidev/react-ui/styles/index.css";
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#__next,
+body > div {
+  height: 100%;
+}

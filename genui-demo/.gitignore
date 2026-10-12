@@ -1,0 +1,11 @@
+.next
+node_modules
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+.DS_Store
+*.log
+
+# generated OpenUI prompt and schema
+/src/generated/
