@@ -1,0 +1,25 @@
+{
+  "name": "@genui-demo/lynx-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/check-node.mjs && rspeedy build && node scripts/copy-runtime.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lynx-js/genui": "0.6.0",
+    "@lynx-js/react": "0.127.0",
+    "@openuidev/lang-core": "0.3.0",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@lynx-js/react-rsbuild-plugin": "0.20.4",
+    "@lynx-js/rspeedy": "0.18.1",
+    "@lynx-js/types": "4.3.0",
+    "@types/d3-scale": "^4.0.9",
+    "@types/d3-shape": "^3.1.7"
+  }
+}

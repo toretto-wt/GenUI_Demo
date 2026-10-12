@@ -9,3 +9,5 @@ node_modules
 
 # generated OpenUI prompt and schema
 /src/generated/
+/public/lynx/
+/lynx/dist/

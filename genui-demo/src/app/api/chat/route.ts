@@ -1,5 +1,7 @@
 import { appToolDeclarations, appToolExecutors } from "@/lib/app-tools";
 import { cloudInstructions } from "@/lib/cloud-prompt";
+import { usesLynxDashboard } from "@/lib/chat-starters";
+import { dashboardLibrary } from "@/lib/lynx-dashboard/contract";
 import { DEFAULT_MODEL, requiredEnv } from "@/lib/env";
 import { runChatToolLoop } from "@/lib/tool-loop";
 import { NextResponse } from "next/server";
@@ -29,7 +31,12 @@ export async function POST(req: Request) {
       baseURL: "https://api.thesys.dev/v1/embed",
       apiKey: requiredEnv("THESYS_API_KEY"),
     });
-    instructions = cloudInstructions();
+    instructions = usesLynxDashboard(messages)
+      ? cloudInstructions(
+          "Render this conversation with the supplied Lynx dashboard library only. Use Card as root. Include Revenue BarChart, Growth LineChart, and Breakdown PieChart in Tabs, a key metrics Table, annual goal Progress and FollowUpBlock. Use illustrative data if none is supplied and label it as sample data. Keep follow-up responses within this library. Do not use Query, Mutation, HTML, or Markdown code fences.",
+          { ...dashboardLibrary.toSpec(), schema: dashboardLibrary.toJSONSchema() },
+        )
+      : cloudInstructions();
   } catch (err) {
     return NextResponse.json(
       { error: { message: err instanceof Error ? err.message : "Chat is not configured." } },

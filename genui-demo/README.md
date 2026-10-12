@@ -2,7 +2,7 @@
 
 A full-stack generative UI chatbot that wires [OpenUI Lang](https://www.openui.com/docs/openui-lang/overview) to a custom component library built on [Material UI](https://mui.com/material-ui/). Instead of replying with plain text, the LLM generates structured UI markup that the client renders as MUI components — cards, tables, charts, forms, tabs, accordions, alerts, lists, and more — in real time as tokens stream in.
 
-This standalone Next.js application maps OpenUI Lang nodes onto Material UI components, with streaming responses and light/dark mode.
+This standalone Next.js application renders most examples with Material UI. The **Startup dashboard** example and its follow-ups use ReactLynx through `@lynx-js/genui/openui/explicit`, embedded with Lynx for Web. Both support streaming responses and light/dark mode.
 
 ## How It Works
 
@@ -17,7 +17,7 @@ tbl = Table([Col("Product"), Col("Revenue", "number")], [["Widget", 1200]])
 On the client, `<AgentInterface />` from `@openuidev/react-ui` provides the chat interface. It uses `agUIAdapter()` for streamed text and error events. Requests still use `openAIMessageFormat` for the Cloud Chat Completions API. Threads stay in memory (no Cloud storage). `muiChatLibrary` renders each OpenUI Lang node.
 
 ```tsx
-<AgentInterface llm={llm} componentLibrary={muiChatLibrary} />
+<AgentInterface llm={llm} componentLibrary={chatLibrary} />
 ```
 
 ## Architecture
@@ -92,7 +92,7 @@ The app wraps everything in MUI's `ThemeProvider` + `CssBaseline` via `ColorMode
 
 ### Prerequisites
 
-- Node.js 20.9 or later
+- Node.js 22 or later (`nvm use`; Lynx's WebAssembly compiler requires Node 22)
 - npm (the repository includes `package-lock.json`)
 - An OpenUI Cloud API key (https://console.thesys.dev/keys)
 
@@ -118,7 +118,7 @@ npm run generate:apiKey
 npm run dev
 ```
 
-`npm run dev` first runs `generate` to (re)write `src/generated/spec.json` from the library, then starts Next.js on http://localhost:3000. The generated spec is not committed.
+`npm run dev` first regenerates `src/generated/spec.json` and builds the Lynx bundle and self-hosted Web runtime into `public/lynx`, then starts Next.js on http://localhost:3000. Generated assets are not committed. After editing `lynx/src`, run `npm run build:lynx` and reload the page; Next.js HMR does not rebuild the separate Lynx workspace.
 
 The OpenUI developer overlay is disabled by default. Set `OPENUI_DEVTOOLS=true` in `.env.local` and restart the dev server to enable it.
 
@@ -147,7 +147,29 @@ npm start
 ## Verify
 
 ```bash
+npm test
 npm run verify
 ```
 
-`verify` regenerates the component spec and runs the production build, including TypeScript checks. The `lint` script currently needs an ESLint flat configuration before it can run.
+`verify` regenerates the MUI spec, checks and builds the Lynx workspace, then runs the Next.js production build. The `lint` script currently needs an ESLint flat configuration before it can run.
+
+## Lynx Dashboard
+
+The integration follows the [Lynx OpenUI guide](https://lynx-stack.dev/zh/guide/genui/openui). It uses an explicit library because the default catalog does not include this app's chart, table, progress, and follow-up contracts.
+
+- `src/lib/chat-starters.ts`: the exact Startup dashboard starter selects Lynx for that conversation. Follow-ups retain the selection; another known starter switches back to MUI. Each historical answer keeps its original renderer.
+- `src/lib/lynx-dashboard/contract.ts`: framework-independent schemas shared by the server prompt and ReactLynx library. The API keeps using OpenUI Cloud, but advertises only supported dashboard components for Lynx conversations.
+- `lynx/src/library.tsx`: Lynx `view`, `text`, `image`, and `scroll-view` components for the report. D3 computes grouped/stacked bars, lines, and pie/donut geometry, rendered as SVG image sources. Tables scroll horizontally on narrow screens.
+- `src/lib/lynx-dashboard/host.tsx`: loads the self-hosted Lynx for Web runtime, mounts `lynx-view`, forwards accumulated source/theme/width with `updateData`, and bridges follow-ups back to the current chat.
+- `src/lib/lynx-dashboard/chat-library.tsx`: replaces only the chat library's root renderer for Lynx answers. The existing SDK still owns its envelope parsing, message state, and MUI interactions; inside the Lynx view, `OpenUiRenderer` parses the complete accumulated source using the shared dashboard schemas.
+- `src/lib/lynx-dashboard/stream-status.ts`: tracks `TEXT_MESSAGE_END` by the triggering user message (the chat SDK rewrites assistant IDs). Cancellation, errors, and EOF without that terminal event clear partial Lynx output instead of enabling its actions.
+
+No API key is sent to Lynx. The client runtime and workers are served from `public/lynx/runtime`; no external CDN is required. This is a **Lynx for Web** integration in the existing Next.js chat, not an iOS/Android host app.
+
+For a deterministic browser smoke test without calling Cloud, start the production app on port 3001, then in another terminal run:
+
+```bash
+npx tsx tests/preview-server.ts
+```
+
+Open http://127.0.0.1:3101 and select Startup dashboard. This local test proxy invokes the real API route with a fixture-only provider. It is not used by the app or included as a production API fallback. `PREVIEW_UPSTREAM` and `PREVIEW_PORT` override its local endpoints.

@@ -2,14 +2,23 @@
   "name": "genui-demo",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "lynx"
+  ],
   "scripts": {
     "generate": "openui generate src/library.ts --spec --out src/generated/spec.json",
     "generate:apiKey": "openui generate-api-key --file .env.local",
-    "predev": "npm run generate",
+    "build:lynx": "npm run build --workspace @genui-demo/lynx-dashboard",
+    "typecheck:lynx": "npm run typecheck --workspace @genui-demo/lynx-dashboard",
+    "test": "tsx --test tests/*.test.ts",
+    "predev": "npm run generate && npm run build:lynx",
     "dev": "next dev",
-    "prebuild": "npm run generate",
+    "prebuild": "npm run generate && npm run typecheck:lynx && npm run build:lynx",
     "build": "next build",
-    "preverify": "npm run generate",
+    "preverify": "npm run generate && npm run typecheck:lynx && npm run build:lynx",
     "verify": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -18,6 +27,7 @@
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
+    "@lynx-js/web-core": "0.26.3",
     "@mui/icons-material": "^6.4.12",
     "@mui/material": "^6.4.12",
     "@mui/x-charts": "^7.29.1",
@@ -39,6 +49,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "allowScripts": {

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@lynx-js/react",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": ["@lynx-js/types", "node"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src", "lynx.config.ts", "../src/lib/lynx-dashboard/contract.ts"]
+}
